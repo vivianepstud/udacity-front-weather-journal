@@ -1,6 +1,6 @@
 /*  Global Variables */
 
-const apiToken = '360dc8cf569bf8c9958ce402540fbb5a';
+const apiToken = '';
 const baseUrl = 'http://api.openweathermap.org/data/2.5/weather';
 const loader = document.querySelector('.loader');
 const zipCodeInput = document.getElementById('input-zip');
