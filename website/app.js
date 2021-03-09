@@ -1,4 +1,5 @@
 /*  Global Variables */
+
 const apiToken = '360dc8cf569bf8c9958ce402540fbb5a';
 const baseUrl = 'http://api.openweathermap.org/data/2.5/weather';
 const loader = document.querySelector('.loader');
@@ -10,10 +11,14 @@ const zipCodeError = document.getElementById('zip-error');
 ****************************************
 */
 
-/* Code inspiration: formValidator from MDN
-//https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation
-*/
-
+/**
+ * @description  Checks the validity of the zipCodeInput element and
+ * shows an approriate error message
+ *  Code inspiration: formValidator from MDN
+ *https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation
+ * @param
+ * @returns
+ */
 function showError() {
   if (zipCodeInput.validity.valueMissing) {
     zipCodeError.textContent = 'Missing ZIP Code';
@@ -26,11 +31,18 @@ function showError() {
   } else if (zipCodeInput.validity.patternMismatch) {
     zipCodeError.textContent = 'Entered value needs to be a valid US Zip Code.';
   }
-  // Set the styling appropriately
   zipCodeError.className = 'error active';
   zipCodeInput.className = (!zipCodeInput.className.includes('error'))
     ? `${zipCodeInput.className} error` : zipCodeInput.className;
 }
+
+/**
+ * @description Sends request to OpenWeatherAPI to get current
+ * weather info from the zipCode provided
+ *
+ * @param {String} zipCode - US Zip Code provided by User
+ * @returns {object} newData - JSON Response from the request to OpenWeatherAPI
+ */
 
 async function getWeatherInfo(zipCode) {
   const url = `${baseUrl}?zip=${zipCode}&appId=${apiToken}&units=imperial`;
@@ -46,12 +58,22 @@ async function getWeatherInfo(zipCode) {
   return newData;
 }
 
-async function sendDataToServer(path, result) {
+/**
+ * @description Combines data from OpenWeatherAPI and user input 
+ * and sends the data in a POST request to the server
+ *
+ * @param {String} path - Path of endpoint that accepts the Post request
+ * @param {object} resJSON - JSON Response from the request to OpenWeatherAPI 
+ *
+ */
+
+async function sendDataToServer(path, resJSON) {
   const feelings = document.getElementById('feelings').value;
   const d = new Date();
   const newDate = `${d.getMonth()}.${d.getDate()}.${d.getFullYear()}`;
+  const temperature = (resJSON) ? `${resJSON.main.temp} °F in ${resJSON.name} ` : '';
   const data = {
-    temperature: `${result.main.temp} °F in ${result.name} `,
+    temperature,
     date: newDate,
     userResponse: feelings,
   };
@@ -68,6 +90,11 @@ async function sendDataToServer(path, result) {
   }
 }
 
+/**
+ * @description Fetches data from the Server endpoint and
+ * updates the HTML file with this data
+ */
+
 async function updateUI() {
   try {
     const request = await fetch('/getData');
@@ -75,8 +102,8 @@ async function updateUI() {
       Promise.reject('statusCodeError');
     }
     let data = await request.json();
-    data = data[data.length - 1];
     if (data) {
+      data = data[data.length - 1];
       document.querySelector('#date').innerHTML = data.date;
       document.querySelector('#temp').innerHTML = data.temperature;
       document.querySelector('#content').innerHTML = data.userResponse;
@@ -92,11 +119,9 @@ async function updateUI() {
 */
 document.querySelector('#generate').addEventListener('click', (event) => {
   if (!zipCodeInput.validity.valid) {
-    // If it isn't, we display an appropriate error message
     showError();
     alert("Invalid ZIP Code, not able to send form!")
   } else {
-    console.log("Generate button clicked");
     loader.className = `${loader.className} active`;
     const zipCode = zipCodeInput.value;
     getWeatherInfo(zipCode)
@@ -119,13 +144,10 @@ document.querySelector('#generate').addEventListener('click', (event) => {
 
 zipCodeInput.addEventListener('input', (event) => {
   if (zipCodeInput.validity.valid) {
-    // In case there is an error message visible, if the field
-    // is valid, we remove the error message.
-    zipCodeError.textContent = ''; // Reset the content of the message
-    zipCodeError.className = 'error'; // Reset the visual state of the message
+    zipCodeError.textContent = '';
+    zipCodeError.className = 'error';
     zipCodeInput.className = zipCodeInput.className.replace(' error', '');
   } else {
-    // If there is still an error, show the correct error
     showError();
   }
 });
